@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p>Title</p>
+    <input type="text" id="title">
+    <p>Author</p>
+    <input type="text" id="author">
+    <p>Rating</p>
+    <input type="text" id="rating">
+    <p>Year of Publication</p>
+    <input type="text" id="year">
+    <br>
+    <button onclick="add()">add</button>
+</body>
+<script>
+    function add(){
+        var userid = sessionStorage.getItem("currentlogged")
+        userid = parseInt(userid)
+        var title = document.getElementById("title").value
+        var author= document.getElementById("author").value
+        var rating= document.getElementById("rating").value
+        rating = parseInt(rating)
+        var year= document.getElementById("year").value
+        year = parseInt(year)
+        history.pushState({"added": title},"state")
+        fetch('http://localhost:8000/graphql', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+            query: `
+            mutation
+                {
+                    addBook(title: "${title}",rating: ${rating}, year_of_publication: ${year}, authorname:"${author}", userid : ${userid})
+                }
+            `
+        }),
+        })
+        .then((res) => res.json())
+        .then((result) => {
+            if (result.data.addBook == "added"){
+                let s = JSON.parse(sessionStorage.getItem('state'))
+                console.log(typeof s)
+                console.log(s)
+                w= ["added", title, author, rating]
+                w.forEach(x=> s.push(x))
+                sessionStorage.setItem("state",JSON.stringify(s))
+                
+            }
+            
+        }).then(()=>
+            window.location.href= `http://localhost:8000/mainpage`
+        );
+        
+    }
+</script>
+</html>

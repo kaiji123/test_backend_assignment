@@ -1,0 +1,13 @@
+- first there is a login page with register function in it
+- if you already have registered the email and password then you can directly login otherwise register your email and password first
+- then put your credentials to login to login
+- if you dont want to register and give your credentials , dont worry click the login button nonetheless we will give you the dummy account that you can use to try out our service
+- after login you will be on the home page where there is an add button on the top, use that to add a book, for every book you add to your database you can either edit or delete the book
+- you also have a search filter to search your books
+- at the bottom there is history function where you can see all the changes from old book states to new book states
+- also there is pagination which you can select a page to show your books (notice that one page only shows three books) , selected page is shown as blue color
+- there is one caveat of adding books you can only add books of shown authors
+
+
+
+

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p>search</p>
+    <input type="text" id="search">
+    <button onclick="search()">search</button>
+    <button onclick="addPage()">add a Book</button>
+    <div id="books"></div>
+    
+    
+    <div id="pages"></div>
+    <div id="history"></div>
+
+    
+</body>
+<script>
+
+    //showing history
+    document.getElementById("history")
+   var states = JSON.parse(sessionStorage.getItem("state"))
+   if (states != null){
+    var indexcount=0
+    let sentence= ""
+    states.forEach(x => {
+        console.log(x)
+        sentence = sentence + " " + x +","
+        console.log(sentence)
+        indexcount++
+        if (indexcount==4){
+            indexcount =0
+            let nodetext= document.createElement("div")
+            nodetext.innerHTML= sentence
+            sentence=""
+            var his =document.getElementById("history")
+            his.appendChild(nodetext)
+
+        }
+        
+
+    })
+   }
+
+    var userid = sessionStorage.getItem("currentlogged")
+    userid = parseInt(userid)
+    authorarray=[]
+    titlearray=[]
+    nodearray=[]
+    console.log("logged" +userid)
+
+
+
+    function addPage(){
+        window.location.href= `http://localhost:8000/add`
+    }
+
+    
+    function deletebook(booktitle){
+        console.log(booktitle)
+    }
+    
+
+    function search(){
+        document.getElementById('books').innerHTML=""
+     
+       init = document.getElementById('books');
+      
+        var word= document.getElementById("search").value
+        childs = nodearray
+        console.log(childs)
+        console.log("travel")
+        
+        childs.forEach(node=> {
+            var a=false
+            var b= false
+            console.log("Lord of the rings".startsWith("h"))
+         
+            if(node.firstChild.innerHTML.toLowerCase().startsWith(word.toLowerCase())==true){
+                console.log(node.firstChild.innerHTML.toLowerCase())
+                init.appendChild(node)
+                return
+                
+            }
+            if(node.childNodes.item(1).innerHTML.toLowerCase().includes(word.toLowerCase())==true){
+                init.appendChild(node)
+                return
+
+
+              
+              
+             
+          }
+          
+        })
+        console.log("done")
+        
+    }
+    function paginate(elperpage){
+        console.log(nodearray.length)
+        var numofpages=Math.ceil(nodearray.length/ elperpage)
+        console.log(numofpages)
+        var lastbutton;
+        for (let i =0;i<numofpages;i++){
+            let s= document.createElement("button") // don t use var in loop it will mess you up
+            s.innerHTML=i
+            s.onclick= function(){
+                var f =document.getElementById('books')
+                f.innerHTML= ""
+                for (let x =0; x< elperpage;x++){
+                    var index =i*elperpage+x
+                    if (index == nodearray.length){
+                        break
+                    }
+                    f.appendChild(nodearray[index])
+
+                }
+                if (s.style.background== "blue"){
+                    return
+                }
+                s.style.background = "blue"
+                console.log(s.style.background)
+                console.log(lastbutton)
+                
+                if (lastbutton!= null){
+                    lastbutton.style.background = "white"
+                    
+                }
+                lastbutton=s 
+               
+                
+            }
+            document.getElementById("pages").appendChild(s)
+            if (i==0){
+                s.click()
+            }
+        }
+        
+    }
+    
+    function getbooks(){
+        
+        fetch('http://localhost:8000/graphql', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+            query: `
+            {
+                userbooks(userid : ${userid}){
+                    title
+                    author{
+                        name
+                    }
+                    rating
+                }
+            }
+            `
+        }),
+        })
+        .then((res) => res.json())
+        .then((result) => {
+            var books = document.getElementById("books")
+            var first = false
+            result.data.userbooks.forEach(book => {
+                
+                var newnode = document.createElement("div")
+                var title= document.createElement("div")
+                var author = document.createElement("div")
+                var rating = document.createElement("div")
+                var deletenode = document.createElement("button")
+                var editnode = document.createElement("button")
+                title.innerHTML= book.title
+                author.innerHTML= book.author.name
+                rating.innerHTML= book.rating
+                deletenode.innerHTML= "delete"
+                deletenode.onclick=function(){
+                    
+                    fetch('http://localhost:8000/graphql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: `
+                        mutation{
+                           deleteBook(userid: ${userid}, title: "${book.title}")
+                        }
+                        `
+                    }),
+                    })
+                    let s = JSON.parse(sessionStorage.getItem('state'))
+              
+                    let w= ["deleted", book.title, book.author.name, book.rating]
+                    w.forEach(x=> s.push(x))
+                    sessionStorage.setItem("state",JSON.stringify(s))
+                    window.location.reload()
+                    
+                    
+                    
+                }
+                editnode.innerHTML= "edit"
+                editnode.onclick = function(){
+                    sessionStorage.setItem("edittitle",book.title)
+                    sessionStorage.setItem("editauthor",book.author.name)
+                    sessionStorage.setItem("editrating",book.rating)
+                    
+                    window.location.href= `http://localhost:8000/edit`
+                }
+                newnode.appendChild(title)
+                newnode.appendChild(author)
+                newnode.appendChild(rating)
+                newnode.appendChild(deletenode)
+                newnode.appendChild(editnode)
+                books.appendChild(newnode)
+                nodearray.push(newnode)
+            });
+            
+        }).then(()=>{
+            console.log("HELLO")
+            
+            paginate(3)
+        });
+        
+    }
+    
+   getbooks()
+
+   
+    
+
+
+
+    
+</script>
+</html>

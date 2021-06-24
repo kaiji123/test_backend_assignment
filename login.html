@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p>Email</p>
+    <input type="text" id="email">
+    <p>Password</p>
+    <input type="password" id="password">
+  
+    <div id="loginstatus"></div>
+    <button onclick="login()">login</button>
+    <p>register</p>
+    <br>
+    <p>email</p>
+    <input type="text" id="registeremail">
+    <p>password</p>
+    <input type="text" id="registerpassword">
+    <button onclick="register()"> register</button>
+    <div id="registerstatus"></div>
+</body>
+<script>
+
+    function register(){
+        var email = document.getElementById("registeremail").value
+        var password= document.getElementById("registerpassword").value
+        
+        console.log("helo")
+    fetch('http://localhost:8000/graphql', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+        query: `
+        mutation{
+            register(email: "${email}", password:"${password}")
+        }
+        `
+    }),
+    })
+    .then((res) => res.json())
+    .then((result) => {/*
+
+        console.log(result.data)
+        //document.getElementById("print").innerHTML =result.data.books[0].title});
+        //localStorage.setItem("currentlogged", result.data.userid)
+        console.log(result.data.register)
+        localStorage.setItem("currentlogged", result.data.register)
+        
+        if (result.data.register != null || result.data.register!= undefined){
+            window.location.href = `http://localhost:8000/mainpage`
+        }*/
+        document.getElementById("registerstatus").innerHTML = "registered"
+
+    
+    });
+        
+
+    }
+    function login(){
+        var email = document.getElementById("email").value
+        var password= document.getElementById("password").value
+        // these field can only be seen on developer tools
+        console.log(email)
+        console.log(password)
+        if(email =="" && password == ""){
+            email = "kaiw@gmail.com"
+            password= "12345"
+        }
+
+    fetch('http://localhost:8000/graphql', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+        query: `
+        {
+            login(email: "${email}", password:"${password}")
+        }
+        `
+    }),
+    })
+    .then((res) => res.json())
+    .then((result) => {
+        console.log(result.data)
+        //document.getElementById("print").innerHTML =result.data.books[0].title});
+        //localStorage.setItem("currentlogged", result.data.userid)
+        console.log(result.data.login)
+        //localstorage is not suited for this case to store current logged in user
+        sessionStorage.setItem("currentlogged", result.data.login)
+        sessionStorage.setItem("state", JSON.stringify([]))
+        if (result.data.login != null || result.data.login != undefined){
+            window.location.href = `http://localhost:8000/mainpage`
+        }});
+        
+        
+    }
+
+  
+</script>
+</html>
